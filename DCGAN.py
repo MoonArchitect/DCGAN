@@ -13,7 +13,9 @@ class DCGAN():
     def __init__(self,
                  noise_dim,
                  image_shape,
-                 width_multiplier = 1):
+                 width_multiplier = 1,
+                 lr=0.0002,
+                 beta1=0.5):
         
         self.noise_dim = noise_dim
         self.image_shape = image_shape
@@ -24,8 +26,8 @@ class DCGAN():
         self.generator = self.get_generator(noise_dim, image_shape, width_multiplier)
         self.discriminator = self.get_discriminator(image_shape, width_multiplier)
 
-        self.generator_optimizer = nn.optimizers.Adam(0.0002, beta_1=0.5)
-        self.discriminator_optimizer = nn.optimizers.Adam(0.0002, beta_1=0.5)
+        self.generator_optimizer = nn.optimizers.Adam(lr, beta_1=beta1)
+        self.discriminator_optimizer = nn.optimizers.Adam(lr, beta_1=beta1)
 
         self.loss_history = []
 
