@@ -165,18 +165,17 @@ class DCGAN():
 
             self.discriminator.save_weights(os.path.join(checkpoint_dir,f"discriminator/discriminator_{epoch}"))
             print(f"Discriminator is saved to {checkpoint_dir}discriminator/discriminator_{epoch}")
-
     def load(self, saved_generator_path=None, saved_discriminator_path=None):
         """
         """
         if saved_generator_path:
             self.generator.load_weights(saved_generator_path)
             print(f"Generator is loaded from {saved_generator_path}")
-        
+
         if saved_discriminator_path:
             self.discriminator.save_weights(saved_discriminator_path)
             print(f"Discriminator is loaded from {saved_discriminator_path}")
-
+    
     def save_generated_images(self, epoch, test_input, dir, n_images=49):
         predictions = self.generator(test_input, training=False)
         axis_length = (np.sqrt(n_images),)*2
@@ -199,3 +198,62 @@ class DCGAN():
         plt.savefig(os.path.join(dir, f"image_at_epoch_{epoch:04d}.png"))
 
         plt.close()
+
+    @tf.function
+    def FID_step(self, data_batch):
+        noise = tf.random.normal((data_batch.shape[0], self.noise_dim))
+        gen_data_batch = self.generator(noise)
+
+        data_batch = tf.image.resize(data_batch, (299, 299))
+        gen_data_batch = tf.image.resize(gen_data_batch, (299, 299))
+        
+        if data_batch.shape[-1] == 1: 
+            data_batch = tf.repeat(data_batch, [3], -1)
+            gen_data_batch = tf.repeat(gen_data_batch, [3], -1)
+
+        real_features = self.inceptionV3(data_batch)
+        gen_features = self.inceptionV3(gen_data_batch)
+        return real_features, gen_features
+
+    def FID(self, image_dataset, samples = None):
+        """
+        """
+        assert len(image_dataset.element_spec.shape) == 4, "Images(3d tensor) from Dataset have to be in batches"
+
+        deleteInceptionOnExit = False
+        if not hasattr(self, 'inceptionV3'):
+            self.inceptionV3 = nn.applications.InceptionV3(include_top=False, input_shape=(299,299,3), pooling='avg')
+            deleteInceptionOnExit = True
+        
+        real_features = np.empty((0,2048), float)
+        gen_features = np.empty((0,2048), float)
+        iter_start = time.time()
+        for step, img_batch in enumerate(image_dataset):
+            if samples and step >= samples:
+                break
+
+            print('\x1b[1K\r', end='') # clear previous line
+            step_start = time.time()
+
+            r_features, g_features = self.FID_step(img_batch)
+            real_features = np.append(real_features, r_features.numpy(), axis=0)
+            gen_features = np.append(gen_features, g_features.numpy(), axis=0)
+
+            if samples:
+                print(f"Step:{step:03d}/{samples}  |  {time.time()-step_start:3f} sec/step  |  ETA: {((time.time()-step_start) * (samples - step)):3f} sec. ")
+            else:
+                print(f"Step:{step:03d}  |  {time.time()-step_start:3f} sec/step ")
+
+        print ('{:3f} sec'.format(time.time()-iter_start))
+
+        if deleteInceptionOnExit:
+            del self.inceptionV3
+        
+        meanR, sigmaR = np.mean(real_features), np.cov(real_features, rowvar=False)
+        meanG, sigmaG = np.mean(gen_features), np.cov(gen_features, rowvar=False)
+
+        mean_diff = np.sum((meanR - meanG)**2)
+        covmean = sqrtm(np.dot(sigmaR, sigmaG))
+        if np.iscomplexobj(covmean):
+            covmean = covmean.real
+        return mean_diff + np.trace(sigmaR + sigmaG - 2.0 * covmean)
