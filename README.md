@@ -8,4 +8,4 @@ Unoficial implementation of DCGAN.
 
 ## MNIST Example (32px)
 ![Random MNIST 32px examples](/images/MNIST32.png)
-#### Configuration: lr=0.0002, epochs=150, ~8hrs (T4 gpu), FID=5.2 (Best), AVG_FID=10±4
+#### Configuration: lr=0.0002, epochs=150, ~30min (T4 gpu), FID=5.2 (Best), AVG_FID=10±4
