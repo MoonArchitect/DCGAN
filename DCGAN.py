@@ -41,24 +41,24 @@ class DCGAN():
         model.add(nn.layers.Reshape((4, 4, int(1024*width_multiplier))))
 
         model.add(nn.layers.BatchNormalization())
-        model.add(nn.layers.ReLU())
+        model.add(nn.layers.LeakyReLU(0.2))
         model.add(nn.layers.Conv2DTranspose(int(512*width_multiplier), (5, 5), strides=(2, 2), padding='same', use_bias=False))
 
         model.add(nn.layers.BatchNormalization())
-        model.add(nn.layers.ReLU())
+        model.add(nn.layers.LeakyReLU(0.2))
         model.add(nn.layers.Conv2DTranspose(int(256*width_multiplier), (5, 5), strides=(2, 2), padding='same', use_bias=False))
 
         model.add(nn.layers.BatchNormalization())
-        model.add(nn.layers.ReLU())
+        model.add(nn.layers.LeakyReLU(0.2))
         model.add(nn.layers.Conv2DTranspose(int(128*width_multiplier), (5, 5), strides=(2, 2), padding='same', use_bias=False))
         
         model.add(nn.layers.BatchNormalization())
-        model.add(nn.layers.ReLU())
-        model.add(nn.layers.Conv2DTranspose(int(64*width_multiplier), (5, 5), strides=(2, 2), padding='same', use_bias=False))
+        model.add(nn.layers.LeakyReLU(0.2))
+        model.add(nn.layers.Conv2DTranspose(int(64*width_multiplier), (5, 5), strides=(1, 1), padding='same', use_bias=False))
 
         model.add(nn.layers.BatchNormalization())
-        model.add(nn.layers.ReLU())
-        model.add(nn.layers.Conv2DTranspose(img_channels, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
+        model.add(nn.layers.LeakyReLU(0.2))
+        model.add(nn.layers.Conv2DTranspose(img_channels, (5, 5), strides=(1, 1), padding='same', use_bias=False, activation='tanh'))
 
         return model
 
@@ -81,7 +81,7 @@ class DCGAN():
         model.add(nn.layers.LeakyReLU(0.2))
         model.add(nn.layers.Dropout(0.1))
 
-        model.add(nn.layers.Conv2D(int(1024*width_multiplier), (5, 5), strides=(2, 2), padding='same'))
+        model.add(nn.layers.Conv2D(int(1024*width_multiplier), (5, 5), strides=(1, 1), padding='same'))
         model.add(nn.layers.BatchNormalization())
         model.add(nn.layers.LeakyReLU(0.2))
         model.add(nn.layers.Dropout(0.1))
