@@ -1,5 +1,5 @@
 # Deep Convolutional Generative Adversarial Network (DCGAN)
-Unoficial implementation of DCGAN.
+Unofficial implementation of DCGAN.
 
 
 ## Best FFHQ Examples (128px)
